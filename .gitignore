@@ -1,0 +1,109 @@
+# ───── Secrets / credentials (asla commitleme) ─────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*credentials*
+*secrets*.yaml
+!*-secrets-template.yaml
+
+# ───── Local data / state ─────
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.log
+**/logs/
+**/backups/
+*.sql
+*.sql.gz
+*.tar.gz
+*.dump
+*.rdb
+*.rdb.gz
+
+# ───── Terraform ─────
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ───── Helm ─────
+charts/*.tgz
+
+# ───── Python ─────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ───── Node ─────
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnpm-store/
+
+# ───── Editör / OS ─────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ───── pgAdmin / DB UI sessions ─────
+**/pgadmin/
+**/sessions/
+**/uptime-kuma/*.db*
+
+# ───── Build / cache ─────
+dist/
+build/
+out/
+target/
+.cache/
+
+# ───── MkDocs build çıktısı ─────
+site/
+site_src/
+
+# ───── Lychee link checker cache ─────
+.lycheecache
+
+# ───── Local runtime stack data (monitoring/) ─────
+monitoring/**/data/
+monitoring/**/docker-tls/
+monitoring/**/screenshots/
+monitoring/**/upload/
+
+# ───── Repo bakım dokümanları (private) ─────
+MARKETING.md
+LAUNCH-PLAN.md
+SOCIAL-DRAFTS.md
+
+.local/
+
+# ───── Öğrenme patikası inşa lab'ları ─────
+# `build/` ve `*.log` genel kalıpları labs/build/ içeriğini (starter/sample.log dahil)
+# yanlışlıkla ignore ediyordu. Bu lab'lar teslim edilebilir müfredat içeriğidir — izle.
+!22-Learning-Path/labs/build/
+!22-Learning-Path/labs/build/**

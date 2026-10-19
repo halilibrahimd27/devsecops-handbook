@@ -1,0 +1,193 @@
+site_name: The DevSecOps Handbook
+site_description: >-
+  Halil İbrahim Dürmüş — DevSecOps Engineer. Kubernetes, GitOps, IaC, observability ve
+  supply-chain security üzerine üretim-odaklı bir DevSecOps handbook — derin TR/EU
+  regülasyon kapsamıyla (21 konu · 134 deep-dive · 85K+ satır) ve açık kaynak projeler.
+site_author: Halil İbrahim Dürmüş
+site_url: https://halilibrahimd27.github.io/devsecops-handbook/
+copyright: >-
+  Copyright &copy; 2026 Halil İbrahim Dürmüş — MIT License
+
+repo_name: halilibrahimd27/devsecops-handbook
+repo_url: https://github.com/halilibrahimd27/devsecops-handbook
+edit_uri: edit/main/
+
+# site_src/ build-time generated (scripts/build-docs.sh oluşturur)
+docs_dir: site_src
+site_dir: site
+
+# MkDocs build sırasında dahil edilmeyecek çalışma/meta dosyalar
+# (build-docs.sh zaten yalnız içerik klasörlerini site_src'a stage'ler)
+exclude_docs: |
+  CLAUDE.md
+  CODE_OF_CONDUCT.md
+  SECURITY.md
+  CONTRIBUTING.md
+  AUDIT.md
+  CHANGES-SUMMARY.md
+  _planning/
+
+theme:
+  name: material
+  language: tr
+  logo: assets/logo.svg
+  favicon: assets/favicon.svg
+  features:
+    # navigation.instant KAPALI: mkdocs-static-i18n ile bilinen uyumsuzluk —
+    # instant loader dil-geçişini (ve /en/ logo linkini) bozup ana sayfaya
+    # atıyordu. Kapatınca her gezinme tam sayfa yüklemesi → dil switcher doğru
+    # twin'e, logo doğru locale ana sayfaya gider.
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
+    - toc.follow
+    - announce.dismiss
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Karanlık moda geç
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Aydınlık moda geç
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+
+plugins:
+  - search:
+      lang:
+        - tr
+        - en
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - tags
+  - awesome-pages:
+      collapse_single_pages: false
+      strict: false
+  # awesome-pages i18n'den ÖNCE gelir (nav'ı i18n locale'lere göre böler).
+  # Aşama A: TR varsayılan (kök), EN /en/ altında kısmi. Çeviri yoksa TR'ye fallback.
+  # İç linkler locale eki olmadan yazılır: [x](Kubernetes-Hardening.md) ✅ / .tr.md ❌
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      languages:
+        - locale: tr
+          default: true
+          name: Türkçe
+          build: true
+        - locale: en
+          name: English
+          build: true
+          nav_translations:
+            "🎓 Öğrenme Patikası": "🎓 Learning Path"
+            "🗺️ Yol Haritası": "🗺️ Roadmap"
+            "📚 Konular": "📚 Topics"
+            "📖 Referans": "📖 Reference"
+            "📖 Sözlük": "📖 Glossary"
+            "🏷️ Etiketler": "🏷️ Tags"
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: timeago
+      locale: tr
+      fallback_to_build_date: true
+      enabled: !ENV [CI, false]
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+      htmlmin_opts:
+        remove_comments: true
+  - glightbox:
+      touchNavigation: true
+      loop: false
+      effect: zoom
+      slide_effect: slide
+      width: 100%
+      zoomable: true
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: "#"
+      permalink_title: Bağlantıyı kopyala
+      toc_depth: 3
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+      clickable_checkbox: false
+  - pymdownx.tilde
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/halilibrahimd27
+      name: GitHub
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/halil-ibrahim-durmus
+      name: LinkedIn
+  # Çerez onay banner'ı kaldırıldı: sitede analytics/gtag yok, dolayısıyla
+  # kullanılmayan bir çerez için izin istemek yanlıştı. Analytics eklenirse
+  # extra.analytics + consent birlikte geri gelir.
+
+extra_css:
+  - assets/extra.css
+
+extra_javascript:
+  - assets/extra.js
+
+# strict: false — docs_dir (site_src) build-time generated; git-revision-date plugin
+# CI'da (CI=true) "no git logs" warning üretir, strict bunları error'a çevirip build'i kırar.
+# Link bütünlüğü ayrı lychee CI job'ında kontrol ediliyor (.lychee.toml).
+strict: false
+use_directory_urls: true

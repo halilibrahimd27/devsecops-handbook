@@ -1,0 +1,171 @@
+name: Quality Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 1a) İç link kontrolü — repo içi dosya/path linkleri. FAIL ETTİRİR.
+  # Kırık iç link bir regresyondur ve düzeltilebilir → build'i kırar.
+  # --offline: sadece yerel dosya linklerini doğrular, ağ isteği atmaz.
+  internal-links:
+    name: Internal link check (lychee, offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run lychee (offline — internal links only)
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --offline
+            --no-progress
+            --exclude-path .git
+            --exclude-path node_modules
+            --exclude-path site_src
+            --exclude-path site
+            --config .lychee.toml
+            './**/*.md'
+          fail: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 1b) Dış link kontrolü — 3rd-party URL'ler. RAPOR-ONLY, push'u bloklamaz.
+  # NOT: repo'da tarihsel olarak 404 olan dış kaynaklar var (domain kapanmış vb.);
+  # bunlar issue olarak ayrı takip edilir. Job sonucu summary'de görünür.
+  external-links:
+    name: External link check (lychee, report-only)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore lychee cache
+        uses: actions/cache@v4
+        with:
+          path: .lycheecache
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
+      - name: Run lychee (external URLs)
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --cache
+            --max-cache-age 14d
+            --no-progress
+            --max-concurrency 6
+            --scheme https
+            --scheme http
+            --exclude-path .git
+            --exclude-path node_modules
+            --exclude-path site_src
+            --exclude-path site
+            --config .lychee.toml
+            './**/*.md'
+          fail: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 2) Placeholder/credential leak guard — CLAUDE.md "kırmızı çizgi"
+  placeholder-leak:
+    name: Placeholder leak guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan for real IPs and credentials
+        run: |
+          set -euo pipefail
+          FAIL=0
+
+          echo "🔍 AWS access key pattern (AKIA...)..."
+          if grep -rEn 'AKIA[0-9A-Z]{16}' \
+              --include="*.md" --include="*.yaml" --include="*.yml" \
+              --exclude-dir=.git --exclude-dir=node_modules .; then
+            echo "::error::AWS access key pattern detected. Use placeholder."
+            FAIL=1
+          fi
+
+          echo "🔍 Google API key pattern (AIza...)..."
+          if grep -rEn 'AIza[0-9A-Za-z_-]{35}' \
+              --include="*.md" --include="*.yaml" --include="*.yml" \
+              --exclude-dir=.git .; then
+            echo "::error::Google API key pattern detected."
+            FAIL=1
+          fi
+
+          echo "🔍 Slack token pattern (xox...)..."
+          if grep -rEn 'xox[baprs]-[0-9a-zA-Z-]{10,}' \
+              --include="*.md" --include="*.yaml" --include="*.yml" \
+              --exclude-dir=.git .; then
+            echo "::error::Slack token pattern detected."
+            FAIL=1
+          fi
+
+          echo "🔍 Private key headers..."
+          if grep -rEn -- '-----BEGIN (RSA |EC |OPENSSH |DSA |)PRIVATE KEY-----' \
+              --include="*.md" --include="*.yaml" --include="*.yml" \
+              --exclude-dir=.git .; then
+            echo "::error::Private key block detected."
+            FAIL=1
+          fi
+
+          echo "🔍 Generic hardcoded credential (password/secret/token = '...')..."
+          # Char class = any non-quote/non-space char (özel karakterler dahil) → 'Passw0rd!' gibi
+          # değerler artık taramayı ES GEÇMEZ. Min 6 = inandırıcı-secret tabanı (eski 20 çok yüksekti).
+          # Allowlist: placeholder / secret-ref / env / komut-substitusyonu / örnek değerleri eler.
+          grep -rEn -i '(password|passwd|secret|api[_-]?key|access[_-]?token|bearer)\s*[:=]\s*["'"'"'][^"'"'"'[:space:]]{6,}["'"'"']' \
+              --include="*.md" --include="*.yaml" --include="*.yml" \
+              --exclude-dir=.git . \
+              | grep -viE '(<[A-Za-z0-9_-]+>|YOUR_|REPLACE_|REDACTED|placeholder|example|change[-_]?me|x{4,}|ghp_x|\$\{?[A-Za-z_]+\}?|\$\(|valuefrom|secretkeyref|secretref|fromsecret|existingsecret|base64)' \
+              > "${RUNNER_TEMP:-/tmp}/cred_hits.txt" || true
+          if [ -s "${RUNNER_TEMP:-/tmp}/cred_hits.txt" ]; then
+            echo "::error::Olası hardcoded credential — <PLACEHOLDER> veya secret referansı kullan:"
+            cat "${RUNNER_TEMP:-/tmp}/cred_hits.txt"
+            FAIL=1
+          fi
+
+          echo "🔍 Public IPv4 (excluding RFC1918, loopback, examples)..."
+          # 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8, 169.254.0.0/16,
+          # 0.0.0.0, 255.255.255.255, 192.0.2.0/24 (TEST-NET-1), 198.51.100.0/24, 203.0.113.0/24
+          if grep -rhEn -- '\b([0-9]{1,3}\.){3}[0-9]{1,3}\b' \
+              --include="*.md" \
+              --exclude-dir=.git . \
+              | grep -vE '\b(10|127|169\.254|172\.(1[6-9]|2[0-9]|3[01])|192\.168|192\.0\.2|198\.51\.100|203\.0\.113|0|255)\.' \
+              | grep -vE '<[A-Z_]+>|<TARGET_IP>|<IP>|x\.x\.x\.x|0\.0\.0\.0|255\.255\.255\.255' \
+              | grep -vE 'version|v[0-9]+\.[0-9]+\.[0-9]+' \
+              | head -5 ; then
+            echo "::warning::Possible public IPv4 leaked. Use <TARGET_IP> placeholder if real."
+          fi
+
+          if [ "$FAIL" -ne 0 ]; then
+            exit 1
+          fi
+          echo "✅ Placeholder leak guard passed"
+
+  # 3) Doküman istatistikleri (her run'da görünür)
+  stats:
+    name: Repo stats
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compute stats
+        run: |
+          echo "📊 Markdown istatistikleri" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          MD_COUNT=$(find . -name "*.md" -not -path "./.git/*" -not -path "./node_modules/*" | wc -l)
+          MD_LINES=$(find . -name "*.md" -not -path "./.git/*" -not -path "./node_modules/*" -exec cat {} + | wc -l)
+          README_COUNT=$(find . -name "README.md" -not -path "./.git/*" | wc -l)
+          echo "| Metrik | Değer |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Toplam markdown | $MD_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| README | $README_COUNT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Toplam satır | $MD_LINES |" >> $GITHUB_STEP_SUMMARY
