@@ -188,11 +188,11 @@ Key password: [password]
 ### ✅ Android App Bundle ID
 **What:** Your app's unique identifier  
 **Why Needed:** To identify the app on the Play Store  
-**Format:** com.companyname.appname (e.g. com.onmuhasebe.mobile)  
+**Format:** com.companyname.appname (e.g. com.example.app)  
 **Where:** In `android/app/build.gradle`:
 ```gradle
 defaultConfig {
-    applicationId "com.onmuhasebe.mobile"
+    applicationId "com.example.app"
     ...
 }
 ```
@@ -329,7 +329,7 @@ Certificate password: [password]
 3. Select "App IDs", Continue
 4. Select "App", Continue
 5. Enter a description
-6. Enter the Bundle ID (e.g. com.onmuhasebe.mobile)
+6. Enter the Bundle ID (e.g. com.example.app)
 7. Select capabilities (Push Notifications, In-App Purchase, etc.)
 8. Continue and Register
 
@@ -426,7 +426,7 @@ In Xcode: Runner target > Signing & Capabilities > Bundle Identifier
     <string>manual</string>
     <key>provisioningProfiles</key>
     <dict>
-        <key>com.onmuhasebe.mobile</key>
+        <key>com.example.app</key>
         <string>Your Profile Name</string>
     </dict>
 </dict>
@@ -435,7 +435,7 @@ In Xcode: Runner target > Signing & Capabilities > Bundle Identifier
 
 **Replace:**
 - `YOUR_TEAM_ID`: Enter your Team ID
-- `com.onmuhasebe.mobile`: Enter your Bundle ID
+- `com.example.app`: Enter your Bundle ID
 - `Your Profile Name`: Enter your provisioning profile name
 
 ---

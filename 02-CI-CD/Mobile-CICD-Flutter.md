@@ -188,11 +188,11 @@ Key password: [şifre]
 ### ✅ Android App Bundle ID
 **Ne:** Uygulamanızın benzersiz tanımlayıcısı  
 **Neden Gerekli:** Play Store'da uygulamayı tanımlamak için  
-**Format:** com.sirketadi.uygulamaadi (ör: com.onmuhasebe.mobile)  
+**Format:** com.sirketadi.uygulamaadi (ör: com.example.app)  
 **Nereden:** `android/app/build.gradle` dosyasında:
 ```gradle
 defaultConfig {
-    applicationId "com.onmuhasebe.mobile"
+    applicationId "com.example.app"
     ...
 }
 ```
@@ -329,7 +329,7 @@ Certificate password: [şifre]
 3. "App IDs" seçin, Continue
 4. "App" seçin, Continue
 5. Description girin
-6. Bundle ID girin (ör: com.onmuhasebe.mobile)
+6. Bundle ID girin (ör: com.example.app)
 7. Capabilities seçin (Push Notifications, In-App Purchase vb.)
 8. Continue ve Register
 
@@ -426,7 +426,7 @@ Xcode'da: Runner target > Signing & Capabilities > Bundle Identifier
     <string>manual</string>
     <key>provisioningProfiles</key>
     <dict>
-        <key>com.onmuhasebe.mobile</key>
+        <key>com.example.app</key>
         <string>Your Profile Name</string>
     </dict>
 </dict>
@@ -435,7 +435,7 @@ Xcode'da: Runner target > Signing & Capabilities > Bundle Identifier
 
 **Değiştirin:**
 - `YOUR_TEAM_ID`: Team ID'nizi girin
-- `com.onmuhasebe.mobile`: Bundle ID'nizi girin
+- `com.example.app`: Bundle ID'nizi girin
 - `Your Profile Name`: Provisioning profile adınızı girin
 
 ---
